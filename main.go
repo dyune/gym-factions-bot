@@ -7,6 +7,7 @@ import (
 	"github.com/davidwang/factions/internal/config"
 	"github.com/davidwang/factions/internal/store"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -25,6 +26,8 @@ func getenv(key, defaultValue string) string {
 }
 
 func main() {
+
+	godotenv.Load()
 
 	dsn := getenv("DATABASE_URL", "postgres://myuser:secret@localhost:5433/mydatabase?sslmode=disable")
 	sqldb := sql.OpenDB(pgdriver.NewConnector(

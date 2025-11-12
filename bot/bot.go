@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -48,10 +49,10 @@ var (
 		"basic-command": BasicCommandHandler,
 		"responses":     ResponseHandler,
 	}
-	Token          = "MTQzMzY1MzU2MzA0MDU5NjA0MA.G_h8Ny.JQwp4qgfekHp1boTVM3RZ7F9xfnThLTiXPGZAw"
-	s              *discordgo.Session
-	RemoveCommands = false
-	GuildId        = "1433638006719385672"
+	Token             = os.Getenv("DISCORD_TOKEN")
+	s                 *discordgo.Session
+	RemoveCommands, _ = strconv.ParseBool(os.Getenv("REMOVE_CMDS"))
+	GuildId           = os.Getenv("SERVER_ID")
 )
 
 func Run() {
