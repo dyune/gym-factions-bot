@@ -25,7 +25,6 @@ type User struct {
 
 	ID             int `bun:",pk"`
 	Name           string
-	DiscordName    string   `bun:",notnull"`
 	UserType       UserType `bun:",default:1"`
 	Points         int      `bun:",notnull,default:0"`
 	FactionID      int
@@ -34,7 +33,7 @@ type User struct {
 	Faction *Faction `bun:"rel:belongs-to,join:faction_id=id"`
 }
 
-func ExistsByID(id int, ctx context.Context, db *bun.DB) bool {
+func ExistsByID(id int, ctx context.Context, db *bun.DB) (bool, error) {
 	exists, err := db.NewSelect().
 		Model((*User)(nil)).
 		Where("id = ?", id).
@@ -42,39 +41,37 @@ func ExistsByID(id int, ctx context.Context, db *bun.DB) bool {
 
 	if err != nil {
 		log.Printf("[ERROR] while calling ExistsByID: %v", err)
+		return false, err
 	}
 	if exists {
-		return true
+		return true, err
 	}
 
-	return false
+	return false, err
 }
 
-func InsertUser(id int, username string, name string, ctx context.Context, db *bun.DB) (int, error) {
-
-	if ExistsByID(id, ctx, db) {
+func InsertUser(id int, name string, ctx context.Context, db *bun.DB) (int, error) {
+	if exists, _ := ExistsByID(id, ctx, db); exists {
 		return -1, exceptions.UserExistsError{
 			UserID:   id,
-			Username: username,
+			Username: name,
 		}
 	}
 
 	var newUser *User
-	if AdminList[username] {
+	if AdminList[name] {
 		newUser = &User{
-			ID:          id,
-			Name:        name,
-			DiscordName: username,
-			UserType:    0,
-			Points:      0,
+			ID:       id,
+			Name:     name,
+			UserType: 0,
+			Points:   0,
 		}
 	} else {
 		newUser = &User{
-			ID:          id,
-			Name:        name,
-			DiscordName: username,
-			UserType:    1,
-			Points:      0,
+			ID:       id,
+			Name:     name,
+			UserType: 1,
+			Points:   0,
 		}
 	}
 
@@ -91,4 +88,59 @@ func InsertUser(id int, username string, name string, ctx context.Context, db *b
 	}
 
 	return id, nil
+}
+
+func LookUpUserByID(id int, ctx context.Context, db *bun.DB) (*User, error) {
+	user := new(User)
+	err := db.NewSelect().
+		Model(user).
+		Where("id = ?", id).
+		Scan(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+
+}
+
+func SetUserDetailsByID(
+	id int,
+	name *string,
+	points *int,
+	factionID *int,
+	ctx context.Context,
+	db *bun.DB,
+) error {
+
+	hasUpdates := false
+	update := db.NewUpdate().
+		Model((*User)(nil)).
+		Where("id = ?", id)
+
+	// Explicit deref since Go won't auto-deref here
+	if name != nil {
+		update = update.Set("name = ?", *name)
+		hasUpdates = true
+	}
+
+	if points != nil {
+		update = update.Set("points = ?", *points)
+		hasUpdates = true
+	}
+
+	if factionID != nil {
+		update = update.Set("faction_id = ?", *factionID)
+		hasUpdates = true
+	}
+
+	if hasUpdates {
+		_, err := update.Exec(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

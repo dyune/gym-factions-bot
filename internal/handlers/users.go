@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/davidwang/factions/internal/config"
 	"github.com/davidwang/factions/internal/exceptions"
@@ -19,7 +20,7 @@ func HandleRegisterUser(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	print(channel)
+	print(channel.Name)
 	// Use member since messages will be sent from a server and not DMs
 	user := i.Member.User
 	log.Printf("User invoked /register")
@@ -38,7 +39,8 @@ func HandleRegisterUser(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	_, err = store.InsertUser(id, user.GlobalName, "", config.GlobalCtx, config.DB)
+	_, err = store.InsertUser(id, user.GlobalName, config.GlobalCtx, config.DB)
+
 	if errors.Is(err, exceptions.ErrUserExists) {
 		log.Printf("user exists: %v", err)
 		msg = "You're already registered :D"
@@ -73,6 +75,8 @@ func HandleRegisterUser(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
+	err = HandleAssignFaction(id, channel.Name)
+
 	msg = "You have successfully been registered!"
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -89,7 +93,31 @@ func HandleRegisterUser(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	return
 }
 
-func HandleAssignFaction(id int, faction store.Faction) error {
+func HandleAssignFaction(id int, channelName string) error {
+	factionName, ok := store.FactionNames[channelName]
+	if ok == false {
+		return errors.New(fmt.Sprintf("No such faction with this channel name: %s", channelName))
+	}
+
+	factionId, err := store.LookUpFaction(config.GlobalCtx, config.DB, factionName)
+	if err != nil {
+		return err
+	}
+
+	ok, err = store.ExistsByID(id, config.GlobalCtx, config.DB)
+
+	if err != nil {
+		return err
+	}
+
+	if ok {
+		err = store.SetUserDetailsByID(id, nil, nil, &factionId, config.GlobalCtx, config.DB)
+	} else {
+		err = exceptions.UserNotFoundError{UserID: id}
+	}
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

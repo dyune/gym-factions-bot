@@ -50,8 +50,8 @@ var (
 	}
 	Token          = "MTQzMzY1MzU2MzA0MDU5NjA0MA.G_h8Ny.JQwp4qgfekHp1boTVM3RZ7F9xfnThLTiXPGZAw"
 	s              *discordgo.Session
-	RemoveCommands = true
-	GuildId        = ""
+	RemoveCommands = false
+	GuildId        = "1433638006719385672"
 )
 
 func Run() {

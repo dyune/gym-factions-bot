@@ -52,14 +52,15 @@ func main() {
 	}
 	log.Printf("Connected to database.")
 
-	// Init tables
-	config.GlobalCtx = context.Background()
-	store.InitTables(config.DB, config.GlobalCtx)
-
 	// Debug
 	config.DB.AddQueryHook(bundebug.NewQueryHook(
 		bundebug.WithVerbose(true),
 	))
+
+	// Init tables
+	config.GlobalCtx = context.Background()
+	store.InitTables(config.DB, config.GlobalCtx)
+
 	log.Printf("Running with Bun debug ON.")
 
 	config.GlobalCtx = context.Background()
