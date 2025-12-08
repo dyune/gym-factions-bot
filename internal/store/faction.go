@@ -20,18 +20,16 @@ type Faction struct {
 	Name          string `bun:",notnull"`
 	Description   string
 
-	Admins []User `bun:"rel:has-many,join:id=admin_faction_id"`
+	Admins []Account `bun:"rel:has-many,join:id=admin_faction_id"`
 }
 
 func ExistsByName(name string, ctx context.Context, db *bun.DB) bool {
 	exists, err := db.NewSelect().
-		Model((*User)(nil)).
+		Model((*Faction)(nil)).
 		Where("name = ?", name).
 		Exists(ctx)
 
 	if err != nil {
-		// Log error or handle it depending on your application's error handling strategy
-		// For now, we'll assume that any error means the record doesn't exist
 		return false
 	}
 
@@ -67,7 +65,7 @@ func InsertFaction(ctx context.Context, db *bun.DB, name string, description str
 	return nil
 }
 
-func LookUpFaction(ctx context.Context, db *bun.DB, name string) (int, error) {
+func LookUpFaction(ctx context.Context, db *bun.DB, name string) (*Faction, error) {
 	faction := new(Faction)
 	err := db.NewSelect().
 		Model(faction).
@@ -75,15 +73,15 @@ func LookUpFaction(ctx context.Context, db *bun.DB, name string) (int, error) {
 		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return -1, err
+		return nil, err
 
 	} else if err != nil {
-		return -2, exceptions.DatabaseError{
+		return nil, exceptions.DatabaseError{
 			Operation: "insert",
 			Err:       err,
 		}
 
 	} else {
-		return faction.ID, nil
+		return faction, nil
 	}
 }

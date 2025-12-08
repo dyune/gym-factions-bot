@@ -13,12 +13,12 @@ func InitTables(db *bun.DB, ctx context.Context) {
 	// Create table
 	_, err := db.
 		NewCreateTable().
-		Model((*User)(nil)). // (*User)(nil) is a null pointer to User
+		Model((*Account)(nil)). // (*Account)(nil) is a null pointer to Account
 		IfNotExists().
 		Exec(ctx)
 
 	if err != nil {
-		log.Fatalf("Failed to create users table: %v", err)
+		log.Fatalf("Failed to create Accounts table: %v", err)
 	}
 
 	_, err = db.

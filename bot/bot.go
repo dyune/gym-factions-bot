@@ -22,6 +22,10 @@ var (
 			Description: "Basic command",
 		},
 		{
+			Name:        "submit",
+			Description: "submit an activity",
+		},
+		{
 			Name:        "responses",
 			Description: "Interaction responses testing initiative",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -45,8 +49,9 @@ var (
 		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"register":      handlers.HandleRegisterUser,
+		"register":      handlers.HandleRegisterAccount,
 		"basic-command": BasicCommandHandler,
+		"submit":        handlers.HandleSubmission,
 		"responses":     ResponseHandler,
 	}
 	Token             = os.Getenv("DISCORD_TOKEN")
@@ -56,6 +61,9 @@ var (
 )
 
 func Run() {
+	if Token == "" {
+		log.Fatal("FATAL: No token found, bot will not authenticate.")
+	}
 	var err error
 	s, err = discordgo.New("Bot " + Token)
 	if err != nil {

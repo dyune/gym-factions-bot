@@ -27,7 +27,10 @@ func getenv(key, defaultValue string) string {
 
 func main() {
 
-	godotenv.Load()
+	// Go's Format() defines your time format based on how you represent
+	// Jan 3rd, 2003 at 15:04:05. Crazy!
+	log.Printf("%s", time.Now().Format("2006-01-03"))
+	godotenv.Load(".env")
 
 	dsn := getenv("DATABASE_URL", "postgres://myuser:secret@localhost:5433/mydatabase?sslmode=disable")
 	sqldb := sql.OpenDB(pgdriver.NewConnector(

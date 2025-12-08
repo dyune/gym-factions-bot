@@ -6,9 +6,9 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrAccountNotFound = errors.New("Account not found")
 
-	ErrUserExists = errors.New("user already exists")
+	ErrAccountExists = errors.New("Account already exists")
 
 	ErrDiscordInteraction = errors.New("discord interaction error")
 
@@ -17,29 +17,29 @@ var (
 	ErrInvalidInput = errors.New("invalid input")
 )
 
-type UserNotFoundError struct {
-	UserID int
+type AccountNotFoundError struct {
+	AccountID int
 }
 
-func (e UserNotFoundError) Error() string {
-	return fmt.Sprintf("user with ID %d not found", e.UserID)
+func (e AccountNotFoundError) Error() string {
+	return fmt.Sprintf("Account with ID %d not found", e.AccountID)
 }
 
-func (e UserNotFoundError) Is(target error) bool {
-	return target == ErrUserNotFound
+func (e AccountNotFoundError) Is(target error) bool {
+	return target == ErrAccountNotFound
 }
 
-type UserExistsError struct {
-	UserID   int
-	Username string
+type AccountExistsError struct {
+	AccountID   int
+	AccountName string
 }
 
-func (e UserExistsError) Error() string {
-	return fmt.Sprintf("user %s (ID: %d) is already registered", e.Username, e.UserID)
+func (e AccountExistsError) Error() string {
+	return fmt.Sprintf("Account %s (ID: %d) is already registered", e.AccountName, e.AccountID)
 }
 
-func (e UserExistsError) Is(target error) bool {
-	return target == ErrUserExists
+func (e AccountExistsError) Is(target error) bool {
+	return target == ErrAccountExists
 }
 
 // DatabaseError wraps database-related errors
