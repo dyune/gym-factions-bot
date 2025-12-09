@@ -38,7 +38,7 @@ func HandleRegisterAccount(s *discordgo.Session, i *discordgo.InteractionCreate)
 
 	faction, err := store.LookUpFaction(config.GlobalCtx, config.DB, factionName)
 	if errors.Is(err, sql.ErrNoRows) {
-		respond("This faction... does not exist.", s, i)
+		err_respond("This faction... does not exist.", s, i)
 		return
 	} else if errors.Is(err, exceptions.ErrDatabaseOp) {
 		respond("While trying to check if you called this command properly, something went wrong.", s, i)

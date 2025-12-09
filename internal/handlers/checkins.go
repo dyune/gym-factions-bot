@@ -1,28 +1,34 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/davidwang/factions/internal/config"
 	"github.com/davidwang/factions/internal/store"
+	"github.com/uptrace/bun"
+	"log"
 	"strconv"
 	"time"
 )
 
 func HandleSubmission(s *discordgo.Session, i *discordgo.InteractionCreate) {
+
+	submissionTime := time.Now()
+
 	channel, err := s.Channel(i.ChannelID)
 	if err != nil {
-		respond("An error occurred: channel retrieval created an error", s, i)
+		err_respond("channel retrieval created an error", s, i)
 		return
 	}
 	if channel == nil {
-		respond("An error occurred: channel is nil", s, i)
+		err_respond("channel is nil", s, i)
 		return
 	}
 
 	id, err := strconv.Atoi(i.Member.User.ID)
 	if err != nil {
-		respond(fmt.Sprintf("An error occurred: id %s could not be parsed", i.Member.User.ID), s, i)
+		err_respond(fmt.Sprintf("id %s could not be parsed", i.Member.User.ID), s, i)
 		return
 	}
 
@@ -32,13 +38,13 @@ func HandleSubmission(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	if err != nil {
-		respond("An error occurred: could not call database", s, i)
+		err_respond("could not call database", s, i)
 	}
 
 	var faction *store.Faction
 	faction, err = store.GetAccountFactionByID(id, config.GlobalCtx, config.DB)
 	if err != nil {
-		respond(fmt.Sprintf("An error occurred: %v", err), s, i)
+		err_respond(fmt.Sprintf("%v", err), s, i)
 		return
 	}
 	if faction.Name != store.FactionNames[channel.Name] {
@@ -46,13 +52,32 @@ func HandleSubmission(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	err = store.InsertSub(time.Now(), 1, id, 1, config.GlobalCtx, config.DB)
+	var reachedLimit bool
+	reachedLimit, err = reachedSubmissionLimit(submissionTime, id, config.GlobalCtx, config.DB)
+	if !reachedLimit {
+		err = store.InsertSub(submissionTime, 1, id, 1, config.GlobalCtx, config.DB)
+		if err != nil {
+			err_respond(fmt.Sprintf("%v", err), s, i)
+			return
+
+		} else {
+			respond("Successfully registered your submission! You've earned some points!", s, i)
+		}
+	}
+	if err != nil {
+		err_respond(fmt.Sprintf("%v", err), s, i)
+	} else {
+		respond("Can't submit more than one activity per day!", s, i)
+		log.Printf("%v", submissionTime)
+	}
+}
+
+func reachedSubmissionLimit(time time.Time, id int, ctx context.Context, db *bun.DB) (bool, error) {
+	result, err := store.SubExistsByDayAndOwnerID(time, id, ctx, db)
 
 	if err != nil {
-		respond("Error registering your submission", s, i)
-		return
-
-	} else {
-		respond("Successfully registered your submission! You've earned some points!", s, i)
+		return result, err
 	}
+
+	return result, nil
 }

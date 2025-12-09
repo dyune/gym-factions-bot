@@ -58,6 +58,28 @@ func GetSubsByWeekAndOwnerID() {
 
 }
 
+func SubExistsByDayAndOwnerID(
+	time time.Time,
+	id int,
+	ctx context.Context,
+	db *bun.DB,
+) (bool, error) {
+
+	exists, err := db.NewSelect().
+		Model((*Submission)(nil)).
+		Where("owner_id = ?", id).
+		Where("DATE(submitted_at) = DATE(?)", time).
+		Exists(ctx)
+
+	if err != nil {
+		return false, exceptions.DatabaseError{
+			Operation: "subExistsByDayAndOwnerID",
+			Err:       err,
+		}
+	}
+	return exists, nil
+}
+
 func InsertSub(
 	time time.Time,
 	subType SubmissionType,
