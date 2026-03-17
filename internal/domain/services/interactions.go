@@ -1,4 +1,4 @@
-package handlers
+package services
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func respond(msg string, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-func err_respond(msg string, s *discordgo.Session, i *discordgo.InteractionCreate) {
+func errRespond(msg string, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

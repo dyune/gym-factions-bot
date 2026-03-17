@@ -1,10 +1,11 @@
-package store
+package postgres
 
 import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/davidwang/factions/internal/exceptions"
+
+	"github.com/davidwang/factions/internal/domain/exceptions"
 	"github.com/uptrace/bun"
 )
 

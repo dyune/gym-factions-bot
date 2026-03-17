@@ -1,12 +1,13 @@
-package store
+package postgres
 
 import (
 	"context"
 	"fmt"
-	"github.com/davidwang/factions/internal/exceptions"
+	"log"
+
+	"github.com/davidwang/factions/internal/domain/exceptions"
 	"github.com/uptrace/bun"
 	_ "github.com/uptrace/bun"
-	"log"
 )
 
 type AccountType int

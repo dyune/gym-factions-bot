@@ -1,12 +1,13 @@
-package store
+package postgres
 
 import (
 	"context"
 	"errors"
-	"github.com/davidwang/factions/internal/config"
-	"github.com/davidwang/factions/internal/exceptions"
-	"github.com/uptrace/bun"
 	"log"
+
+	"github.com/davidwang/factions/internal/config"
+	"github.com/davidwang/factions/internal/domain/exceptions"
+	"github.com/uptrace/bun"
 )
 
 func InitTables(db *bun.DB, ctx context.Context) {

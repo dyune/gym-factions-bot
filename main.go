@@ -3,18 +3,20 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/davidwang/factions/bot"
 	"github.com/davidwang/factions/internal/config"
-	"github.com/davidwang/factions/internal/store"
+	"github.com/davidwang/factions/internal/infra/postgres"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bundebug"
-	"log"
-	"os"
-	"time"
 )
 
 func getenv(key, defaultValue string) string {
@@ -29,7 +31,13 @@ func main() {
 
 	// Go's Format() defines your time format based on how you represent
 	// Jan 3rd, 2003 at 15:04:05. Crazy!
-	log.Printf("%s", time.Now().Format("2006-01-03"))
+
+	currentTime := time.Now()
+	year, week := currentTime.ISOWeek()
+
+	fmt.Printf("Current date: %s\n", currentTime.Format("2006-01-02"))
+	fmt.Printf("ISO Week: %d of %d\n", week, year)
+
 	godotenv.Load(".env")
 
 	dsn := getenv("DATABASE_URL", "postgres://myuser:secret@localhost:5433/mydatabase?sslmode=disable")
@@ -65,7 +73,7 @@ func main() {
 
 	// Init tables
 	config.GlobalCtx = context.Background()
-	store.InitTables(config.DB, config.GlobalCtx)
+	postgres.InitTables(config.DB, config.GlobalCtx)
 
 	log.Printf("Running with Bun debug ON.")
 

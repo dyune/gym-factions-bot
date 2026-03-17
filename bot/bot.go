@@ -1,14 +1,15 @@
 package bot
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"github.com/davidwang/factions/internal/handlers"
 	"log"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/davidwang/factions/internal/domain/services"
 )
 
 var (
@@ -49,9 +50,9 @@ var (
 		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"register":      handlers.HandleRegisterAccount,
+		"register":      services.HandleRegisterAccount,
 		"basic-command": BasicCommandHandler,
-		"submit":        handlers.HandleSubmission,
+		"submit":        services.HandleSubmission,
 		"responses":     ResponseHandler,
 	}
 	Token             = os.Getenv("DISCORD_TOKEN")
@@ -62,7 +63,7 @@ var (
 
 func Run() {
 	if Token == "" {
-		log.Fatal("FATAL: No token found, bot will not authenticate.")
+		log.Fatal("[FATAL] No token found, bot will not authenticate.")
 	}
 	var err error
 	s, err = discordgo.New("Bot " + Token)
@@ -88,7 +89,7 @@ func Run() {
 	defer func(s *discordgo.Session) {
 		err := s.Close()
 		if err != nil {
-			log.Fatalf("bot.go/Close: could not close gracefully: %s", err)
+			log.Fatalf("[WARN] could not close gracefully: %s", err)
 		}
 	}(s)
 
@@ -98,7 +99,7 @@ func Run() {
 		var cmd *discordgo.ApplicationCommand
 		cmd, err = s.ApplicationCommandCreate(s.State.User.ID, GuildId, v)
 		if err != nil {
-			log.Panicf("bot.go/Run: failed to register command: %s", err)
+			log.Panicf("[FATAL] failed to register command: %s", err)
 		}
 		registeredCommands[i] = cmd
 	}
@@ -113,7 +114,7 @@ func Run() {
 		for _, v := range registeredCommands {
 			err = s.ApplicationCommandDelete(s.State.User.ID, GuildId, v.ID)
 			if err != nil {
-				log.Panicf("bot.go/Run: while removing Commands for shutdown: %s", err)
+				log.Panicf("[FATAL] while removing Commands for shutdown: %s", err)
 			}
 		}
 	}

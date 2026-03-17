@@ -1,11 +1,12 @@
-package store
+package postgres
 
 import (
 	"context"
-	"github.com/davidwang/factions/internal/exceptions"
-	"github.com/uptrace/bun"
 	"log"
 	"time"
+
+	"github.com/davidwang/factions/internal/domain/exceptions"
+	"github.com/uptrace/bun"
 )
 
 type SubmissionType int
@@ -56,6 +57,23 @@ type ChallengeSubmission struct {
 
 func GetSubsByWeekAndOwnerID() {
 
+}
+
+func SubExistsByWeekAndOwnerID(
+	time time.Time,
+	id int,
+	ctx context.Context,
+	db *bun.DB,
+) (bool, error) {
+	exists, err := db.NewSelect().
+		Model((*Submission)(nil)).
+		Where("owner_id = ?", id).
+		Where("EXTRACT(WEEK FROM submitted_at) = EXTRACT(WEEK FROM DATE(?))", time).
+		Exists(ctx)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func SubExistsByDayAndOwnerID(
